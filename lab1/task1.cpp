@@ -12,10 +12,10 @@ constexpr int DIAGRAMM_MAX_WIDTH = 50;
 constexpr int RANGE_ACCURACY = 0;
 
 constexpr int GENERAL_INTERVAL_SIZE = CEILING_EXCLUSIVE - FLOOR_INCLUSIVE;
-constexpr double INTERVAL_STEP =
-    static_cast<double>(GENERAL_INTERVAL_SIZE) / INTERVALS_AMOUNT;
+constexpr float INTERVAL_STEP =
+    static_cast<float>(GENERAL_INTERVAL_SIZE) / INTERVALS_AMOUNT;
 
-double get_random_number(int floor_inclusive, int ceiling_exclusive);
+float get_random_number(int floor_inclusive, int ceiling_exclusive);
 
 int main() {
     int interval_counters[INTERVALS_AMOUNT] = {0};
@@ -24,9 +24,9 @@ int main() {
     std::srand(static_cast<unsigned int>(t));
 
     for (int i = 0; i < AMOUNT; i++) {
-        double random_number =
+        float random_number =
             get_random_number(FLOOR_INCLUSIVE, CEILING_EXCLUSIVE);
-        double offset = random_number - FLOOR_INCLUSIVE;
+        float offset = random_number - FLOOR_INCLUSIVE;
         int interval_number = static_cast<int>(offset / INTERVAL_STEP);
         interval_counters[interval_number] += 1;
     }
@@ -35,11 +35,11 @@ int main() {
     for (int j = 0; j < INTERVALS_AMOUNT; j++) {
         int count = interval_counters[j];
         unsigned long line = static_cast<unsigned long>(
-            static_cast<double>(count) / AMOUNT * DIAGRAMM_MAX_WIDTH
+            static_cast<float>(count) / AMOUNT * DIAGRAMM_MAX_WIDTH
         );
         std::string s(line, '*');
-        double cur_floor = FLOOR_INCLUSIVE + INTERVAL_STEP * j;
-        double cur_ceiling = cur_floor + INTERVAL_STEP;
+        float cur_floor = FLOOR_INCLUSIVE + INTERVAL_STEP * static_cast<float>(j);
+        float cur_ceiling = cur_floor + INTERVAL_STEP;
         std::println(
             "{0} [{1:.{4}f};{2:.{4}f}): {3}",
             count,
@@ -54,7 +54,7 @@ int main() {
     return 0;
 }
 
-double get_random_number(int floor_inclusive, int ceiling_exclusive) {
-    double r = static_cast<double>(std::rand()) / (RAND_MAX + 1.0);
-    return floor_inclusive + r * (ceiling_exclusive - floor_inclusive);
+float get_random_number(int floor_inclusive, int ceiling_exclusive) {
+    float r = static_cast<float>(std::rand()) / (RAND_MAX + 1.0f);
+    return static_cast<float>(floor_inclusive) + r * static_cast<float>(ceiling_exclusive - floor_inclusive);
 }
