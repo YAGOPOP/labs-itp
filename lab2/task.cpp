@@ -1,3 +1,4 @@
+#include <array>
 #include <chrono>
 #include <cstddef>
 #include <limits>
@@ -5,11 +6,19 @@
 #include <random>
 #include <span>
 #include <utility>
+#include <vector>
 
-constexpr std::size_t arr_size = 100000;
+// constexpr std::array<std::size_t, 5> arr_sizes = {
+//     1000, 10000, 100000, 500000, 1000000};
+constexpr std::array<std::size_t, 3> arr_sizes = {
+    1000, 10000, 100000};
 
 void bubble_sort(std::span<long> array);
 void print_array(std::span<long> array);
+
+using SortFunction = void (*)(std::span<long>);
+std::chrono::milliseconds
+benchmark_sorting(std::span<long> array, SortFunction sort);
 
 int main() {
     std::random_device rd;
@@ -18,18 +27,19 @@ int main() {
         std::numeric_limits<long>::min(), std::numeric_limits<long>::max()
     );
 
-    std::array<long, arr_size> a;
-    for (std::size_t i = 0; i < arr_size; i++) {
-        a[i] = distrib(gen);
+    for (std::size_t arr_size : arr_sizes) {
+        std::vector<long> vec(arr_size);
+        for (std::size_t i = 0; i < arr_size; i++) {
+            vec[i] = distrib(gen);
+        }
+
+        std::chrono::milliseconds duration = benchmark_sorting(vec, bubble_sort);
+        std::println(
+            "bubble sort {} elements, elapsed milis: {}",
+            arr_size,
+            duration.count()
+        );
     }
-
-    auto start = std::chrono::steady_clock::now();
-    bubble_sort(a);
-    auto end = std::chrono::steady_clock::now();
-
-    auto duration =
-        std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    std::println("bubble sort {} milis: {}", arr_size, duration.count());
 }
 
 void bubble_sort(std::span<long> array) {
@@ -49,4 +59,14 @@ void print_array(const std::span<long> array) {
         std::print("{} ", array[i]);
     }
     std::println("{}", array[last]);
+}
+
+using SortFunction = void (*)(std::span<long>);
+std::chrono::milliseconds
+benchmark_sorting(std::span<long> array, SortFunction sort) {
+    using namespace std::chrono;
+    time_point start = steady_clock::now();
+    sort(array);
+    time_point end = steady_clock::now();
+    return duration_cast<milliseconds>(end - start);
 }
