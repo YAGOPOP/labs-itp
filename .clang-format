@@ -10,5 +10,10 @@ BinPackParameters: false
 
 BreakAfterOpenBracketFunction: true
 BreakBeforeCloseBracketFunction: true
+BreakFunctionDefinitionParameters: false
+
+AllowAllParametersOfDeclarationOnNextLine: false
 
 AlignAfterOpenBracket: false
+BreakAfterReturnType: Automatic
+PenaltyReturnTypeOnItsOwnLine: 1000000
