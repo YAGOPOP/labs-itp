@@ -1,11 +1,15 @@
+#include <algorithm>
 #include <array>
+#include <cassert>
 #include <chrono>
 #include <cstddef>
 #include <limits>
+#include <meta>
 #include <print>
 #include <random>
 #include <span>
 #include <stack>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -19,7 +23,8 @@ using std::stack;
 using std::swap;
 using std::vector;
 using std::chrono::milliseconds;
-constexpr array<size_t, 6> arr_sizes = {1000, 10000, 100000, 500000, 1000000, 10000000};
+constexpr array<size_t, 5> arr_sizes =
+    {1000, 10000, 100000, 500000, 1000000};
 
 // constexpr array<size_t, 3> arr_sizes = {1000, 10000, 100000};
 
@@ -31,7 +36,13 @@ void iterative_quick_sort_with_eq(std::span<long> array);
 void recursive_quick_sort(span<long> array);
 
 using SortFunction = void (*)(std::span<long>);
-milliseconds benchmark_sorting(std::span<long> array, SortFunction sort);
+milliseconds measure_sorting_time(std::span<long> array, SortFunction sort);
+
+void benchmark_sorting(
+    const std::string_view name,
+    const std::span<long> array,
+    SortFunction sort
+);
 
 int main() {
     std::random_device rd;
@@ -51,41 +62,12 @@ int main() {
             vec_prime.begin() + static_cast<ptrdiff_t>(arr_size)
         );
 
-        vector<long> vec_quick_iter(sub_vec_prime);
-        milliseconds duration_quick_iter =
-            benchmark_sorting(vec_quick_iter, iterative_quick_sort);
-        println(
-            "iterative quick sort {} elements, elapsed milis: {}",
-            arr_size,
-            duration_quick_iter.count()
-        );
+        println("---------Benchmarking collection of {} elements---------", arr_size);
 
-        vector<long> vec_quick_iter_eq(sub_vec_prime);
-        milliseconds duration_quick_iter_eq =
-            benchmark_sorting(vec_quick_iter_eq, iterative_quick_sort_with_eq);
-        println(
-            "iterative quick sort with equal {} elements, elapsed milis: {}",
-            arr_size,
-            duration_quick_iter_eq.count()
-        );
-
-        vector<long> vec_quick_rec(sub_vec_prime);
-        milliseconds duration_quick_rec =
-            benchmark_sorting(vec_quick_rec, iterative_quick_sort_with_eq);
-        println(
-            "recursive quick sort {} elements, elapsed milis: {}",
-            arr_size,
-            duration_quick_rec.count()
-        );
-
-        // vector<long> vec_bubble(sub_vec_prime);
-        // milliseconds duration_bubble =
-        //     benchmark_sorting(vec_bubble, bubble_sort);
-        // println(
-        //     "bubble sort {} elements, elapsed milis: {}",
-        //     arr_size,
-        //     duration_bubble.count()
-        // );
+        benchmark_sorting("recursive quick sort", sub_vec_prime, recursive_quick_sort);
+        benchmark_sorting("iterative quick sort", sub_vec_prime, iterative_quick_sort);
+        benchmark_sorting("iterative quick sort with equal", sub_vec_prime, iterative_quick_sort_with_eq);
+        // benchmark_sorting("bubble sort", sub_vec_prime, bubble_sort);
     }
 }
 
@@ -110,12 +92,29 @@ void print_array(const std::span<long> array) {
 }
 
 using SortFunction = void (*)(std::span<long>);
-milliseconds benchmark_sorting(std::span<long> array, SortFunction sort) {
+milliseconds measure_sorting_time(std::span<long> array, SortFunction sort) {
     using namespace std::chrono;
     time_point start = steady_clock::now();
     sort(array);
     time_point end = steady_clock::now();
     return duration_cast<milliseconds>(end - start);
+}
+
+void benchmark_sorting(
+    const std::string_view name,
+    const std::span<long> array,
+    SortFunction sort
+) {
+    vector<long> vec(array.begin(), array.end());
+    milliseconds elapsed = measure_sorting_time(vec, sort);
+
+    assert(std::is_sorted(vec.begin(), vec.end()));
+
+    println(
+        "Algorithm: {}; time (milliseconds) elapsed: {}",
+        name,
+        elapsed
+    );
 }
 
 size_t quick_sort_partition(
@@ -196,7 +195,7 @@ borders_t quick_sort_partition_with_eq(
     size_t i = left;
     size_t greater = right;
 
-    while (i < greater) {
+    while (i <= greater) {
         if (array[i] < pivot) {
             swap(array[lower], array[i]);
             lower++;
