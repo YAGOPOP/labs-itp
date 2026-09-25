@@ -1,17 +1,7 @@
-#include <algorithm>
-#include <array>
 #include <cassert>
-#include <chrono>
-#include <cstddef>
-#include <limits>
-#include <meta>
-#include <print>
-#include <random>
-#include <span>
-#include <stack>
-#include <string_view>
-#include <utility>
-#include <vector>
+import std;
+
+
 
 using std::array;
 using std::pair;
@@ -23,6 +13,8 @@ using std::stack;
 using std::swap;
 using std::vector;
 using std::chrono::milliseconds;
+using std::ptrdiff_t;
+
 constexpr array<size_t, 5> arr_sizes =
     {1000, 10000, 100000, 500000, 1000000};
 
