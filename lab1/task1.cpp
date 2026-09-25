@@ -55,6 +55,6 @@ int main() {
 }
 
 float get_random_number(int floor_inclusive, int ceiling_exclusive) {
-    float r = static_cast<float>(std::rand()) / (RAND_MAX + 1.0f);
+    float r = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
     return static_cast<float>(floor_inclusive) + r * static_cast<float>(ceiling_exclusive - floor_inclusive);
 }
