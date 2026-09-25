@@ -4,7 +4,6 @@
 #include <chrono>
 #include <cstddef>
 #include <limits>
-#include <meta>
 #include <print>
 #include <random>
 #include <span>
