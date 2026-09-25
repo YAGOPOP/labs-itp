@@ -4,6 +4,7 @@
 #include <iostream>
 #include <print>
 #include <string>
+#include <stdexcept>
 
 int get_random_number(int floor_inclusive, int ceiling_inclusive);
 int get_input_number(int floor, int ceiling, const std::string &prompt);
@@ -33,11 +34,15 @@ int get_input_number(int floor, int ceiling, const std::string &prompt) {
     std::string input_number;
     while (true) {
         std::print("{}", prompt);
-        std::getline(std::cin, input_number);
+        if (!std::getline(std::cin, input_number)) {
+            std::println("\nВвод завершён.");
+            std::exit(0);
+        }
+
         int number;
         try {
             number = std::stoi(input_number);
-        } catch (std::invalid_argument) {
+        } catch (const std::invalid_argument&) {
             std::println("Неверный ввод.");
             continue;
         }
@@ -52,12 +57,12 @@ int get_input_number(int floor, int ceiling, const std::string &prompt) {
 
 int bot_move(const int sticks) {
     int cap = 3;
-    if (sticks<3) {
+    if (sticks < 3) {
         cap = sticks;
     }
 
     int move;
-    //make perfect move
+    // make perfect move
     switch (sticks % 4) {
     case 0:
         move = 3;
@@ -115,6 +120,7 @@ bool sticks_game_loop(bool bot_turn) {
     return bot_turn;
 }
 
+/// rerurns true if bot won
 bool game_loop() {
     int bot_score = 100;
     int player_score = 100;
@@ -135,5 +141,5 @@ bool game_loop() {
         }
         bot_turn = !bot_turn;
     }
-    return bot_turn;
+    return bot_score > player_score;
 }

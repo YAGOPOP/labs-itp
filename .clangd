@@ -6,3 +6,12 @@ CompileFlags:
     - -Wpedantic
     - -Wconversion
     - -Wshadow
+    - -Wsign-conversion
+    - -Wcast-qual
+    - -Wformat=2
+    - -Wundef
+    - -Werror=return-type
+    - -Wnull-dereference
+    - -Wdouble-promotion
+    - -Woverloaded-virtual
+    - -Wnon-virtual-dtor
