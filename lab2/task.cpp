@@ -22,17 +22,17 @@ using std::stack;
 using std::swap;
 using std::vector;
 using std::chrono::milliseconds;
-constexpr array<size_t, 5> arr_sizes =
-    {1000, 10000, 100000, 500000, 1000000};
+constexpr array<size_t, 5> arr_sizes = {1000, 10000, 100000, 500000, 1000000};
 
 // constexpr array<size_t, 3> arr_sizes = {1000, 10000, 100000};
 
-void print_array(std::span<long> array);
+void print_array(const std::span<long> array);
 
 void bubble_sort(std::span<long> array);
 void iterative_quick_sort(std::span<long> array);
 void iterative_quick_sort_with_eq(std::span<long> array);
 void recursive_quick_sort(span<long> array);
+void quick_sort_hp(span<long> array);
 
 using SortFunction = void (*)(std::span<long>);
 milliseconds measure_sorting_time(std::span<long> array, SortFunction sort);
@@ -61,11 +61,24 @@ int main() {
             vec_prime.begin() + static_cast<ptrdiff_t>(arr_size)
         );
 
-        println("---------Benchmarking collection of {} elements---------", arr_size);
+        println(
+            "---------Benchmarking collection of {} elements---------", arr_size
+        );
 
-        benchmark_sorting("recursive quick sort", sub_vec_prime, recursive_quick_sort);
-        benchmark_sorting("iterative quick sort", sub_vec_prime, iterative_quick_sort);
-        benchmark_sorting("iterative quick sort with equal", sub_vec_prime, iterative_quick_sort_with_eq);
+        benchmark_sorting(
+            "recursive quick sort", sub_vec_prime, recursive_quick_sort
+        );
+        benchmark_sorting(
+            "iterative quick sort", sub_vec_prime, iterative_quick_sort
+        );
+        benchmark_sorting(
+            "iterative quick sort with equal",
+            sub_vec_prime,
+            iterative_quick_sort_with_eq
+        );
+        benchmark_sorting(
+            "recursive quick sort Hoare partition", sub_vec_prime, quick_sort_hp
+        );
         // benchmark_sorting("bubble sort", sub_vec_prime, bubble_sort);
     }
 }
@@ -109,11 +122,7 @@ void benchmark_sorting(
 
     assert(std::is_sorted(vec.begin(), vec.end()));
 
-    println(
-        "Algorithm: {}; time (milliseconds) elapsed: {}",
-        name,
-        elapsed
-    );
+    println("Algorithm: {}; time elapsed: {}", name, elapsed);
 }
 
 size_t quick_sort_partition(
@@ -238,4 +247,39 @@ void iterative_quick_sort_with_eq(std::span<long> array) {
             borders.push({eq_right + 1, right});
         }
     }
+}
+
+size_t hoare_partition(span<long> array, size_t left, size_t right) {
+    long pivot = array[(left + right) / 2];
+    while (true) {
+        while (array[left] < pivot) {
+            left++;
+        }
+        while (array[right] > pivot) {
+            right--;
+        }
+        if (left >= right) {
+            return right;
+        }
+        swap(array[left], array[right]);
+        left++;
+        right--;
+    }
+}
+
+void quick_sort_hp_core(
+    span<long> array,
+    const size_t left,
+    const size_t right
+) {
+    const size_t pivot = hoare_partition(array, left, right);
+    if (left >= right) {
+        return;
+    }
+    quick_sort_hp_core(array, left, pivot);
+    quick_sort_hp_core(array, pivot + 1, right);
+}
+
+void quick_sort_hp(span<long> array) {
+    quick_sort_hp_core(array, 0, array.size() - 1);
 }
