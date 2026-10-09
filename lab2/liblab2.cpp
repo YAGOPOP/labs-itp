@@ -2,12 +2,12 @@
 
 #include <algorithm>
 #include <cassert>
+#include <chrono>
 #include <cstddef>
 #include <print>
 #include <stack>
 #include <utility>
 #include <vector>
-#include <chrono>
 
 namespace {
 
@@ -97,6 +97,20 @@ size_t hoare_partition(span<long> array, size_t left, size_t right) {
         right--;
     }
 }
+
+void quick_sort_hp_core(
+    span<long> array,
+    const size_t left,
+    const size_t right
+) {
+    const size_t pivot = hoare_partition(array, left, right);
+    if (left >= right) {
+        return;
+    }
+    quick_sort_hp_core(array, left, pivot);
+    quick_sort_hp_core(array, pivot + 1, right);
+}
+
 } // namespace
 
 void bubble_sort(std::span<long> array) {
@@ -186,8 +200,7 @@ void iterative_quick_sort_with_eq(std::span<long> array) {
             continue;
         }
 
-        auto [eq_left, eq_right] =
-            lomuto_partition_with_eq(array, left, right);
+        auto [eq_left, eq_right] = lomuto_partition_with_eq(array, left, right);
 
         if (eq_left > left) {
             borders.push({left, eq_left - 1});
@@ -199,19 +212,12 @@ void iterative_quick_sort_with_eq(std::span<long> array) {
     }
 }
 
-void quick_sort_hp_core(
-    span<long> array,
-    const size_t left,
-    const size_t right
-) {
-    const size_t pivot = hoare_partition(array, left, right);
-    if (left >= right) {
-        return;
-    }
-    quick_sort_hp_core(array, left, pivot);
-    quick_sort_hp_core(array, pivot + 1, right);
-}
+
 
 void quick_sort_hp(span<long> array) {
+    if (array.size() < 2) {
+        return;
+    }
+
     quick_sort_hp_core(array, 0, array.size() - 1);
 }
