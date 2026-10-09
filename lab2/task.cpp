@@ -36,12 +36,12 @@ int main() {
             "---------Benchmarking collection of {} elements---------", arr_size
         );
 
-        benchmark_sorting(
-            "recursive quick sort", sub_vec_prime, recursive_quick_sort
-        );
-        benchmark_sorting(
-            "iterative quick sort", sub_vec_prime, iterative_quick_sort
-        );
+        // benchmark_sorting(
+        //     "recursive quick sort", sub_vec_prime, recursive_quick_sort
+        // );
+        // benchmark_sorting(
+        //     "iterative quick sort", sub_vec_prime, iterative_quick_sort
+        // );
         benchmark_sorting(
             "iterative quick sort with equal",
             sub_vec_prime,
@@ -50,6 +50,6 @@ int main() {
         benchmark_sorting(
             "recursive quick sort Hoare partition", sub_vec_prime, quick_sort_hp
         );
-        // benchmark_sorting("bubble sort", sub_vec_prime, bubble_sort);
+        benchmark_sorting("bubble sort", sub_vec_prime, bubble_sort);
     }
 }
