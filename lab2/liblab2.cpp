@@ -23,14 +23,6 @@ using std::chrono::milliseconds;
 
 using borders_t = pair<size_t, size_t>;
 
-milliseconds measure_sorting_time(std::span<long> array, SortFunction sort) {
-    using namespace std::chrono;
-    time_point start = steady_clock::now();
-    sort(array);
-    time_point end = steady_clock::now();
-    return duration_cast<milliseconds>(end - start);
-}
-
 size_t lomuto_partition(
     span<long> array,
     const size_t left,

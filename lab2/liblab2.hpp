@@ -5,6 +5,7 @@
 
 #include <span>
 #include <string_view>
+#include <chrono>
 
 
 void bubble_sort(std::span<long> array);
@@ -20,4 +21,12 @@ void benchmark_sorting(
     SortFunction sort
 );
 
+template<typename T = std::chrono::milliseconds>
+T measure_sorting_time(std::span<long> array, SortFunction sort) {
+    using namespace std::chrono;
+    time_point start = steady_clock::now();
+    sort(array);
+    time_point end = steady_clock::now();
+    return duration_cast<T>(end - start);
+}
 #endif
