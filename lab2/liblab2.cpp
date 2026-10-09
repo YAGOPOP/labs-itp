@@ -103,10 +103,12 @@ void quick_sort_hp_core(
     const size_t left,
     const size_t right
 ) {
-    const size_t pivot = hoare_partition(array, left, right);
     if (left >= right) {
         return;
     }
+
+    const size_t pivot = hoare_partition(array, left, right);
+
     quick_sort_hp_core(array, left, pivot);
     quick_sort_hp_core(array, pivot + 1, right);
 }
