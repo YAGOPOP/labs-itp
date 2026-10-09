@@ -127,6 +127,11 @@ void bubble_sort(std::span<long> array) {
 }
 
 void print_array(const std::span<long> array) {
+    if (array.size() == 0) {
+        println("[]");
+        return;
+    }
+
     size_t last = array.size() - 1;
     print("[");
     for (size_t i = 0; i < last; i++) {
@@ -213,8 +218,6 @@ void iterative_quick_sort_with_eq(std::span<long> array) {
         }
     }
 }
-
-
 
 void quick_sort_hp(span<long> array) {
     if (array.size() < 2) {
