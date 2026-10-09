@@ -1,15 +1,12 @@
 #include "liblab2.hpp"
 
 #include <algorithm>
-#include <array>
 #include <cstddef>
-#include <limits>
 #include <print>
 #include <random>
 #include <span>
 #include <vector>
 
-using std::array;
 using std::println;
 using std::size_t;
 using std::vector;
