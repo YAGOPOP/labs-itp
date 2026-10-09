@@ -7,6 +7,7 @@
 #include <string_view>
 #include <chrono>
 
+void print_array(const std::span<long> array);
 
 void bubble_sort(std::span<long> array);
 void iterative_quick_sort(std::span<long> array);
