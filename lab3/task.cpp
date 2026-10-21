@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <optional>
@@ -8,6 +9,7 @@
 #include <utility>
 #include <vector>
 
+using std::print;
 using std::println;
 using std::size_t;
 using std::stack;
@@ -129,6 +131,24 @@ class Graph {
         return true;
     }
 
+    vector<vertex_id_t> get_vertex_connections(vertex_id_t vertex_id) const {
+        vector<vertex_id_t> r;
+        for (auto &[id, _] : adjacency_list.at(vertex_id)) {
+            r.push_back(id);
+        }
+        return r;
+    }
+
+    bool are_neighbours(vertex_id_t u, vertex_id_t v) const {
+        for (auto &[potential_v, _] : adjacency_list.at(u)) {
+            if (potential_v == v) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     bool is_connected_ignoring_isolated() const {
         unordered_set<vertex_id_t> visited;
         stack<vertex_id_t> vertex_stack;
@@ -173,26 +193,6 @@ class Graph {
         return are_all_degrees_even() && is_connected_ignoring_isolated();
     }
 
-    // std::optional<vector<vertex_id_t>> find_eulerian_cycle() const {
-    //     if (!has_eulerian_cycle()) {
-    //         return std::nullopt;
-    //     }
-
-    //     vector<vertex_id_t> eulerian_cycle;
-
-    //     unordered_set<edge_id_t> seen_edges;
-    //     auto [current_vertex, initial_connections] = *adjacency_list.begin();
-
-    //     auto next = choose_next_edge(current_vertex, seen_edges);
-
-    //     if (next) {
-    //         seen_edges.insert(next->edge_id);
-    //         current_vertex = next->vertex;
-    //     }
-
-    //     return std::nullopt;
-    // }
-
     std::optional<vector<vertex_id_t>> find_eulerian_cycle() const {
         if (!has_eulerian_cycle()) {
             return std::nullopt;
@@ -228,21 +228,54 @@ class Graph {
                 break;
             }
 
-            // Помечаем ребро пройденным
             seen_edges.insert(next->edge_id);
 
-            // Переходим к следующей вершине
             current = next->vertex;
             cycle.push_back(current);
         }
 
-        // Проверяем, что использованы все рёбра
-        // и маршрут замкнулся
         if (seen_edges.size() != edge_count || cycle.back() != *start) {
             return std::nullopt;
         }
 
         return cycle;
+    }
+
+    bool hamiltonian_dfs(vertex_id_t u, vector<vertex_id_t> &visited) const {
+        visited.push_back(u);
+
+        if (visited.size() == adjacency_list.size()) {
+            if (are_neighbours(u, visited.front())) {
+                return true;
+            }
+        }
+
+        for (auto &[v, _] : adjacency_list.at(u)) {
+            if (!std::ranges::contains(visited, v)) {
+                if (hamiltonian_dfs(v, visited)) {
+                    return true;
+                }
+            }
+        }
+
+        visited.pop_back();
+        return false;
+    }
+
+    std::optional<vector<vertex_id_t>> find_hamiltonian_cycle() const {
+        if (adjacency_list.empty()) {
+            return std::nullopt;
+        }
+
+        vertex_id_t start = adjacency_list.begin()->first;
+        vector<vertex_id_t> path;
+
+        if (hamiltonian_dfs(start, path)) {
+            path.push_back(path.front());
+            return path;
+        }
+
+        return std::nullopt;
     }
 };
 
@@ -269,15 +302,24 @@ int main() {
 
     graph.add_connection(6, 7);
 
-    //
     // graph.add_connection(6, 8); // makes graph eulerian
-    //
+
+    if (auto cycle = graph.find_hamiltonian_cycle()) {
+        for (auto v : *cycle) {
+            print("{} ", v);
+        }
+        println();
+    } else {
+        println("no hamiltonian cycle found");
+
+    }
 
     if (auto eulerian_cycle = graph.find_eulerian_cycle()) {
         for (vertex_id_t a : *eulerian_cycle) {
-            println("{}", a);
+            print("{} ", a);
         }
+        println();
     } else {
-        println("no cycle found");
+        println("no eulerian cycle found");
     }
 }
