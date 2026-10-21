@@ -198,11 +198,10 @@ class Graph {
             return std::nullopt;
         }
 
-        // Находим стартовую вершину ненулевой степени
         std::optional<vertex_id_t> start;
         size_t edge_count = 0;
 
-        for (const auto& [id, connections] : adjacency_list) {
+        for (const auto &[id, connections] : adjacency_list) {
             edge_count += connections.size();
 
             if (!start && !connections.empty()) {
@@ -210,10 +209,8 @@ class Graph {
             }
         }
 
-        // Каждое ребро хранится дважды
         edge_count /= 2;
 
-        // Граф без рёбер
         if (!start) {
             return vector<vertex_id_t>{};
         }
@@ -241,8 +238,7 @@ class Graph {
 
         // Проверяем, что использованы все рёбра
         // и маршрут замкнулся
-        if (seen_edges.size() != edge_count ||
-            cycle.back() != *start) {
+        if (seen_edges.size() != edge_count || cycle.back() != *start) {
             return std::nullopt;
         }
 
@@ -253,20 +249,35 @@ class Graph {
 int main() {
     Graph graph;
 
-    graph.add_vertex(1);
-    graph.add_vertex(2);
-    graph.add_vertex(3);
-    graph.add_vertex(4);
-    // graph.add_vertex(5);
+    for (vertex_id_t v = 1; v <= 8; v++) {
+        graph.add_vertex(v);
+    }
 
     graph.add_connection(1, 2);
-    graph.add_connection(2, 3);
-    graph.add_connection(3, 4);
-    graph.add_connection(4, 1);
-    // graph.add_connection(4, 5);
+    graph.add_connection(1, 8);
 
-    println("{}", graph.has_eulerian_cycle());
-    for (auto a : graph.find_eulerian_cycle().value()) {
-        println("{}", a);
+    graph.add_connection(2, 3);
+    graph.add_connection(2, 8);
+    graph.add_connection(2, 6);
+
+    graph.add_connection(3, 7);
+
+    graph.add_connection(4, 8);
+    graph.add_connection(4, 5);
+
+    graph.add_connection(5, 6);
+
+    graph.add_connection(6, 7);
+
+    //
+    // graph.add_connection(6, 8); // makes graph eulerian
+    //
+
+    if (auto eulerian_cycle = graph.find_eulerian_cycle()) {
+        for (vertex_id_t a : *eulerian_cycle) {
+            println("{}", a);
+        }
+    } else {
+        println("no cycle found");
     }
 }
