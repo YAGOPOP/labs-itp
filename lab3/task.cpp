@@ -23,11 +23,11 @@ using edge_id_t = uint32_t;
 //  todo добавить ориентированный граф
 class Graph {
   private:
-    edge_id_t edge_id = 0;
+    edge_id_t next_edge_id = 0;
 
     struct Connection {
         vertex_id_t vertex;
-        edge_id_t edge_id;
+        edge_id_t next_edge_id;
     };
 
     unordered_map<vertex_id_t, vector<Connection>> adjacency_list;
@@ -35,7 +35,7 @@ class Graph {
     bool is_bridge(
         vertex_id_t u,
         const Connection &candidate,
-        const unordered_set<edge_id_t> &seen_edges
+        const unordered_set<edge_id_t> &used_edges
     ) const {
         vertex_id_t v = candidate.vertex;
 
@@ -54,8 +54,8 @@ class Graph {
             vertex_stack.pop();
 
             for (const auto &connection : adjacency_list.at(current)) {
-                if (connection.edge_id == candidate.edge_id ||
-                    seen_edges.contains(connection.edge_id)) {
+                if (connection.next_edge_id == candidate.next_edge_id ||
+                    used_edges.contains(connection.next_edge_id)) {
                     continue;
                 }
 
@@ -74,20 +74,20 @@ class Graph {
 
     std::optional<Connection> choose_next_edge(
         vertex_id_t u,
-        const unordered_set<edge_id_t> &seen_edges
+        const unordered_set<edge_id_t> &used_edges
     ) const {
         std::optional<Connection> candidate;
         size_t count = 0;
 
         for (const Connection &connection : adjacency_list.at(u)) {
-            if (seen_edges.contains(connection.edge_id)) {
+            if (used_edges.contains(connection.next_edge_id)) {
                 continue;
             }
 
             ++count;
             candidate = connection;
 
-            if (!is_bridge(u, connection, seen_edges)) {
+            if (!is_bridge(u, connection, used_edges)) {
                 return connection;
             }
         }
@@ -97,6 +97,27 @@ class Graph {
         }
 
         return std::nullopt;
+    }
+
+    bool hamiltonian_dfs(vertex_id_t u, vector<vertex_id_t> &path) const {
+        path.push_back(u);
+
+        if (path.size() == adjacency_list.size()) {
+            if (are_neighbours(u, path.front())) {
+                return true;
+            }
+        }
+
+        for (auto &[v, _] : adjacency_list.at(u)) {
+            if (!std::ranges::contains(path, v)) {
+                if (hamiltonian_dfs(v, path)) {
+                    return true;
+                }
+            }
+        }
+
+        path.pop_back();
+        return false;
     }
 
   public:
@@ -124,19 +145,19 @@ class Graph {
             return false;
         }
 
-        it_u->second.push_back({v, edge_id});
-        it_v->second.push_back({u, edge_id});
-        edge_id++;
+        it_u->second.push_back({v, next_edge_id});
+        it_v->second.push_back({u, next_edge_id});
+        next_edge_id++;
 
         return true;
     }
 
     vector<vertex_id_t> get_vertex_connections(vertex_id_t vertex_id) const {
-        vector<vertex_id_t> r;
+        vector<vertex_id_t> neighbors;
         for (auto &[id, _] : adjacency_list.at(vertex_id)) {
-            r.push_back(id);
+            neighbors.push_back(id);
         }
-        return r;
+        return neighbors;
     }
 
     bool are_neighbours(vertex_id_t u, vertex_id_t v) const {
@@ -165,17 +186,17 @@ class Graph {
             return true;
         }
 
-        while (!vertex_stack.empty()) { // пока есть необработанные вершины
-            vertex_id_t v = vertex_stack.top(); // берём одну из них
+        while (!vertex_stack.empty()) {
+            vertex_id_t v = vertex_stack.top();
             vertex_stack.pop();
 
             for (auto [neighbor, _] :
-                 adjacency_list.at(v)) { // и для каждого из её соседей
+                 adjacency_list.at(v)) {
                 if (visited.insert(neighbor)
-                        .second) { // если его ещё не посещали
+                        .second) {
                     vertex_stack.push(
                         neighbor
-                    ); // добавляем его в необработанные вершины
+                    );
                 }
             }
         }
@@ -215,51 +236,30 @@ class Graph {
             return vector<vertex_id_t>{};
         }
 
-        unordered_set<edge_id_t> seen_edges;
+        unordered_set<edge_id_t> used_edges;
         vector<vertex_id_t> cycle;
 
         vertex_id_t current = *start;
         cycle.push_back(current);
 
         while (true) {
-            auto next = choose_next_edge(current, seen_edges);
+            auto next = choose_next_edge(current, used_edges);
 
             if (!next) {
                 break;
             }
 
-            seen_edges.insert(next->edge_id);
+            used_edges.insert(next->next_edge_id);
 
             current = next->vertex;
             cycle.push_back(current);
         }
 
-        if (seen_edges.size() != edge_count || cycle.back() != *start) {
+        if (used_edges.size() != edge_count || cycle.back() != *start) {
             return std::nullopt;
         }
 
         return cycle;
-    }
-
-    bool hamiltonian_dfs(vertex_id_t u, vector<vertex_id_t> &visited) const {
-        visited.push_back(u);
-
-        if (visited.size() == adjacency_list.size()) {
-            if (are_neighbours(u, visited.front())) {
-                return true;
-            }
-        }
-
-        for (auto &[v, _] : adjacency_list.at(u)) {
-            if (!std::ranges::contains(visited, v)) {
-                if (hamiltonian_dfs(v, visited)) {
-                    return true;
-                }
-            }
-        }
-
-        visited.pop_back();
-        return false;
     }
 
     std::optional<vector<vertex_id_t>> find_hamiltonian_cycle() const {
