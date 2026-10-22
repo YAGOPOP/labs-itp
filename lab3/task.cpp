@@ -302,17 +302,9 @@ int main() {
 
     graph.add_connection(6, 7);
 
-    // graph.add_connection(6, 8); // makes graph eulerian
-
-    if (auto cycle = graph.find_hamiltonian_cycle()) {
-        for (auto v : *cycle) {
-            print("{} ", v);
-        }
-        println();
-    } else {
-        println("no hamiltonian cycle found");
-
-    }
+    println("Has eulerian cycle: {}", graph.has_eulerian_cycle());
+    graph.add_connection(6, 8); // makes graph eulerian
+    println("Added edge 6-8 to make graph eulerian");
 
     if (auto eulerian_cycle = graph.find_eulerian_cycle()) {
         for (vertex_id_t a : *eulerian_cycle) {
@@ -321,5 +313,14 @@ int main() {
         println();
     } else {
         println("no eulerian cycle found");
+    }
+
+    if (auto cycle = graph.find_hamiltonian_cycle()) {
+        for (auto v : *cycle) {
+            print("{} ", v);
+        }
+        println();
+    } else {
+        println("no hamiltonian cycle found");
     }
 }
