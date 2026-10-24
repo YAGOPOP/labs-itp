@@ -20,14 +20,13 @@ using std::vector;
 using vertex_id_t = uint32_t;
 using edge_id_t = uint32_t;
 
-//  todo добавить ориентированный граф
 class Graph {
   private:
     edge_id_t next_edge_id = 0;
 
     struct Connection {
         vertex_id_t vertex;
-        edge_id_t next_edge_id;
+        edge_id_t edge_id;
     };
 
     unordered_map<vertex_id_t, vector<Connection>> adjacency_list;
@@ -37,9 +36,7 @@ class Graph {
         const Connection &candidate,
         const unordered_set<edge_id_t> &used_edges
     ) const {
-        vertex_id_t v = candidate.vertex;
-
-        if (u == v) {
+        if (u == candidate.vertex) {
             return false;
         }
 
@@ -54,12 +51,12 @@ class Graph {
             vertex_stack.pop();
 
             for (const auto &connection : adjacency_list.at(current)) {
-                if (connection.next_edge_id == candidate.next_edge_id ||
-                    used_edges.contains(connection.next_edge_id)) {
+                if (connection.edge_id == candidate.edge_id ||
+                    used_edges.contains(connection.edge_id)) {
                     continue;
                 }
 
-                if (connection.vertex == v) {
+                if (connection.vertex == candidate.vertex) {
                     return false;
                 }
 
@@ -80,7 +77,7 @@ class Graph {
         size_t count = 0;
 
         for (const Connection &connection : adjacency_list.at(u)) {
-            if (used_edges.contains(connection.next_edge_id)) {
+            if (used_edges.contains(connection.edge_id)) {
                 continue;
             }
 
@@ -122,8 +119,8 @@ class Graph {
 
   public:
     bool are_all_degrees_even() const {
-        for (const auto &[_, vertex] : adjacency_list) {
-            if (vertex.size() % 2 != 0) {
+        for (const auto &[_, connections] : adjacency_list) {
+            if (connections.size() % 2 != 0) {
                 return false;
             }
         }
@@ -131,12 +128,10 @@ class Graph {
         return true;
     }
 
-    /// Returns true if added, false if already exists
     bool add_vertex(vertex_id_t index) {
         return adjacency_list.try_emplace(index).second;
     }
 
-    /// Returns false if one ov verticies does not exist.
     bool add_connection(vertex_id_t u, vertex_id_t v) {
         auto it_u = adjacency_list.find(u);
         auto it_v = adjacency_list.find(v);
@@ -180,10 +175,6 @@ class Graph {
                 vertex_stack.push(id);
                 break;
             }
-        }
-
-        if (vertex_stack.empty()) {
-            return true;
         }
 
         while (!vertex_stack.empty()) {
@@ -249,7 +240,7 @@ class Graph {
                 break;
             }
 
-            used_edges.insert(next->next_edge_id);
+            used_edges.insert(next->edge_id);
 
             current = next->vertex;
             cycle.push_back(current);
