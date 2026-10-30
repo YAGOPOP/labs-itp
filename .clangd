@@ -15,3 +15,4 @@ CompileFlags:
     - -Wdouble-promotion
     - -Woverloaded-virtual
     - -Wnon-virtual-dtor
+  CompilationDatabase: build/Debug
