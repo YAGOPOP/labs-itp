@@ -3,6 +3,7 @@ module;
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <map>
 #include <optional>
 #include <stack>
 #include <unordered_map>
@@ -20,21 +21,28 @@ using std::vector;
 
 export using vertex_id_t = uint32_t;
 export using edge_id_t = uint32_t;
+using weight_t = double;
+
+export struct ShortestPath {
+    weight_t weight;
+    vector<vertex_id_t> path;
+};
 
 export class Graph {
   private:
     edge_id_t next_edge_id = 0;
 
-    struct Connection {
+    struct Arc {
         vertex_id_t vertex;
         edge_id_t edge_id;
+        weight_t weight;
     };
 
-    unordered_map<vertex_id_t, vector<Connection>> adjacency_list;
+    unordered_map<vertex_id_t, vector<Arc>> adjacency_list;
 
     bool is_bridge(
         vertex_id_t u,
-        const Connection &candidate,
+        const Arc &candidate,
         const unordered_set<edge_id_t> &used_edges
     ) const {
         if (u == candidate.vertex) {
@@ -70,14 +78,14 @@ export class Graph {
         return true;
     }
 
-    std::optional<Connection> choose_next_edge(
+    std::optional<Arc> choose_next_edge(
         vertex_id_t u,
         const unordered_set<edge_id_t> &used_edges
     ) const {
-        std::optional<Connection> candidate;
+        std::optional<Arc> candidate;
         size_t count = 0;
 
-        for (const Connection &connection : adjacency_list.at(u)) {
+        for (const Arc &connection : adjacency_list.at(u)) {
             if (used_edges.contains(connection.edge_id)) {
                 continue;
             }
@@ -106,7 +114,7 @@ export class Graph {
             }
         }
 
-        for (auto &[v, _] : adjacency_list.at(u)) {
+        for (auto &[v, _, _] : adjacency_list.at(u)) {
             if (!std::ranges::contains(path, v)) {
                 if (hamiltonian_dfs(v, path)) {
                     return true;
@@ -133,7 +141,7 @@ export class Graph {
         return adjacency_list.try_emplace(index).second;
     }
 
-    bool add_connection(vertex_id_t u, vertex_id_t v) {
+    bool add_arc(vertex_id_t u, vertex_id_t v, weight_t weight) {
         auto it_u = adjacency_list.find(u);
         auto it_v = adjacency_list.find(v);
 
@@ -141,23 +149,27 @@ export class Graph {
             return false;
         }
 
-        it_u->second.push_back({v, next_edge_id});
-        it_v->second.push_back({u, next_edge_id});
+        it_u->second.push_back({v, next_edge_id, weight});
+        it_v->second.push_back({u, next_edge_id, weight});
         next_edge_id++;
 
         return true;
     }
 
+    bool add_arc(vertex_id_t u, vertex_id_t v) {
+        return this->add_arc(u, v, 0);
+    }
+
     vector<vertex_id_t> get_vertex_connections(vertex_id_t vertex_id) const {
         vector<vertex_id_t> neighbors;
-        for (auto &[id, _] : adjacency_list.at(vertex_id)) {
+        for (auto &[id, _, _] : adjacency_list.at(vertex_id)) {
             neighbors.push_back(id);
         }
         return neighbors;
     }
 
     bool are_neighbours(vertex_id_t u, vertex_id_t v) const {
-        for (auto &[potential_v, _] : adjacency_list.at(u)) {
+        for (auto &[potential_v, _, _] : adjacency_list.at(u)) {
             if (potential_v == v) {
                 return true;
             }
@@ -182,13 +194,9 @@ export class Graph {
             vertex_id_t v = vertex_stack.top();
             vertex_stack.pop();
 
-            for (auto [neighbor, _] :
-                 adjacency_list.at(v)) {
-                if (visited.insert(neighbor)
-                        .second) {
-                    vertex_stack.push(
-                        neighbor
-                    );
+            for (auto [neighbor, _, _] : adjacency_list.at(v)) {
+                if (visited.insert(neighbor).second) {
+                    vertex_stack.push(neighbor);
                 }
             }
         }
@@ -268,5 +276,18 @@ export class Graph {
         }
 
         return std::nullopt;
+    }
+
+    std::map<vertex_id_t, ShortestPath> find_shortest_pathes_floyd() {
+        std::map<vertex_id_t, ShortestPath> res;
+
+        return res;
+    }
+
+
+    std::map<vertex_id_t, ShortestPath> find_shortest_pathes_dijkstra() {
+        std::map<vertex_id_t, ShortestPath> res;
+
+        return res;
     }
 };
