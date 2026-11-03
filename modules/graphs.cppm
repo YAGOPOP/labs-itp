@@ -26,7 +26,7 @@ export using edge_id_t = uint32_t;
 using weight_t = double;
 
 export struct ShortestPath {
-    weight_t weight = 0;
+    weight_t weight = 0.0;
     vector<vertex_id_t> path = {};
 
     ShortestPath(const weight_t &weight) : weight(weight) {}
@@ -288,20 +288,47 @@ export class Graph {
         return shortest_paths;
     }
 
-    std::map<vertex_id_t, ShortestPath> find_shortest_pathes_dijkstra(
-        vertex_id_t start
-    ) {
-        std::map<vertex_id_t, ShortestPath> shortest_paths;
-        shortest_paths.insert(start, {});
+    std::optional<std::map<vertex_id_t, ShortestPath>>
+    find_shortest_pathes_dijkstra(vertex_id_t start) {
+        unordered_set<vertex_id_t> visited;
 
-        for (auto const &[id, conns] : adjacency_list) {
-            shortest_paths.insert(
-                {id, {std::numeric_limits<weight_t>().max()}}
+        std::map<vertex_id_t, ShortestPath> shortest_paths;
+        shortest_paths.try_emplace(start, 0.0);
+        for (const auto &[id, _] : adjacency_list) {
+            shortest_paths.try_emplace(
+                id, std::numeric_limits<weight_t>::infinity()
             );
         }
 
-        for (auto const &[id, sp] : shortest_paths) {
-            std::println("id: {}; spw: {}", id, sp.weight);
+        while (true) {
+            std::optional<vertex_id_t> current;
+            weight_t min_not_visited_weight = 0.0;
+            for (auto const &[id, sp] : shortest_paths) {
+                if (min_not_visited_weight > sp.weight &&
+                    !visited.contains(id)) {
+                    current = id;
+                }
+            }
+
+            if (!current.has_value()) {
+                return std::nullopt;
+            }
+
+            for (auto const &[ne_id, _, w] :
+                 adjacency_list.at(current.value())) {
+                if (!visited.contains(ne_id)) {
+                    shortest_paths[ne_id] = std::min(
+                        shortest_paths[ne_id].weight,
+                        shortest_paths[current.value()].weight + w
+                    );
+                }
+            }
+
+            visited.insert(current.value());
+
+            if (visited.size() == adjacency_list.size()) {
+                break;
+            }
         }
 
         return shortest_paths;
