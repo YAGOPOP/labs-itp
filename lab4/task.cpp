@@ -35,5 +35,10 @@ int main() {
 
     std::optional<std::map<vertex_id_t, ShortestPath>> a = graph.find_shortest_pathes_dijkstra(1);
 
-    std::println("{}", a.has_value());
+    if (!a.has_value()) {
+        return 1;
+    }
+
+    std::println("{}", a.value().at(3).weight);
+    std::println("{}", a.value().at(3).path);
 }

@@ -29,7 +29,7 @@ export struct ShortestPath {
     weight_t weight = 0.0;
     vector<vertex_id_t> path = {};
 
-    ShortestPath(const weight_t &weight) : weight(weight) {}
+    explicit ShortestPath(weight_t weight) : weight(weight) {}
 };
 
 export class Graph {
@@ -302,9 +302,10 @@ export class Graph {
 
         while (true) {
             std::optional<vertex_id_t> current;
-            weight_t min_not_visited_weight = 0.0;
-            for (auto const &[id, sp] : shortest_paths) {
-                if (min_not_visited_weight > sp.weight &&
+            weight_t min_not_visited_weight =
+                std::numeric_limits<weight_t>::infinity();
+            for (auto const &[id, cur_sp] : shortest_paths) {
+                if (min_not_visited_weight > cur_sp.weight &&
                     !visited.contains(id)) {
                     current = id;
                 }
@@ -317,10 +318,15 @@ export class Graph {
             for (auto const &[ne_id, _, w] :
                  adjacency_list.at(current.value())) {
                 if (!visited.contains(ne_id)) {
-                    shortest_paths[ne_id] = std::min(
-                        shortest_paths[ne_id].weight,
-                        shortest_paths[current.value()].weight + w
-                    );
+                    auto &next = shortest_paths.at(ne_id);
+                    auto &cur_path = shortest_paths.at(current.value());
+
+                    weight_t candidate_weight = cur_path.weight + w;
+
+                    if (next.weight > candidate_weight) {
+                        next.weight = candidate_weight;
+                        cur_path.path.push_back(ne_id);
+                    }
                 }
             }
 
@@ -334,3 +340,10 @@ export class Graph {
         return shortest_paths;
     }
 };
+
+export template <typename T> void print_array(const std::span<T> array) {
+    for (auto v : array) {
+        std::print("{} ", v);
+    }
+    std::println("");
+}
