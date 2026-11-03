@@ -3,8 +3,10 @@ module;
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <map>
 #include <optional>
+#include <print>
 #include <stack>
 #include <unordered_map>
 #include <unordered_set>
@@ -24,8 +26,10 @@ export using edge_id_t = uint32_t;
 using weight_t = double;
 
 export struct ShortestPath {
-    weight_t weight;
-    vector<vertex_id_t> path;
+    weight_t weight = 0;
+    vector<vertex_id_t> path = {};
+
+    ShortestPath(const weight_t &weight) : weight(weight) {}
 };
 
 export class Graph {
@@ -279,15 +283,27 @@ export class Graph {
     }
 
     std::map<vertex_id_t, ShortestPath> find_shortest_pathes_floyd() {
-        std::map<vertex_id_t, ShortestPath> res;
+        std::map<vertex_id_t, ShortestPath> shortest_paths;
 
-        return res;
+        return shortest_paths;
     }
 
+    std::map<vertex_id_t, ShortestPath> find_shortest_pathes_dijkstra(
+        vertex_id_t start
+    ) {
+        std::map<vertex_id_t, ShortestPath> shortest_paths;
+        shortest_paths.insert(start, {});
 
-    std::map<vertex_id_t, ShortestPath> find_shortest_pathes_dijkstra() {
-        std::map<vertex_id_t, ShortestPath> res;
+        for (auto const &[id, conns] : adjacency_list) {
+            shortest_paths.insert(
+                {id, {std::numeric_limits<weight_t>().max()}}
+            );
+        }
 
-        return res;
+        for (auto const &[id, sp] : shortest_paths) {
+            std::println("id: {}; spw: {}", id, sp.weight);
+        }
+
+        return shortest_paths;
     }
 };
