@@ -290,6 +290,10 @@ export class Graph {
 
     std::optional<std::map<vertex_id_t, ShortestPath>>
     find_shortest_pathes_dijkstra(vertex_id_t start) {
+        if (!adjacency_list.contains(start)) {
+            return std::nullopt;
+        }
+
         unordered_set<vertex_id_t> visited;
 
         std::map<vertex_id_t, ShortestPath> shortest_paths;
@@ -299,34 +303,41 @@ export class Graph {
                 id, std::numeric_limits<weight_t>::infinity()
             );
         }
+        shortest_paths.at(start).path = {start};
 
         while (true) {
             std::optional<vertex_id_t> current;
+
             weight_t min_not_visited_weight =
                 std::numeric_limits<weight_t>::infinity();
+
             for (auto const &[id, cur_sp] : shortest_paths) {
                 if (min_not_visited_weight > cur_sp.weight &&
                     !visited.contains(id)) {
                     current = id;
+                    min_not_visited_weight = cur_sp.weight;
                 }
             }
 
-            if (!current.has_value()) {
-                return std::nullopt;
+            if (!current) {
+                break;
             }
 
             for (auto const &[ne_id, _, w] :
                  adjacency_list.at(current.value())) {
-                if (!visited.contains(ne_id)) {
-                    auto &next = shortest_paths.at(ne_id);
-                    auto &cur_path = shortest_paths.at(current.value());
+                if (visited.contains(ne_id)) {
+                    continue;
+                }
 
-                    weight_t candidate_weight = cur_path.weight + w;
+                auto &next = shortest_paths.at(ne_id);
+                const auto &cur_path = shortest_paths.at(current.value());
 
-                    if (next.weight > candidate_weight) {
-                        next.weight = candidate_weight;
-                        cur_path.path.push_back(ne_id);
-                    }
+                weight_t candidate_weight = cur_path.weight + w;
+                if (next.weight > candidate_weight) {
+                    next.weight = candidate_weight;
+
+                    next.path = cur_path.path;
+                    next.path.push_back(ne_id);
                 }
             }
 
