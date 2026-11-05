@@ -28,8 +28,6 @@ using weight_t = double;
 export struct ShortestPath {
     weight_t weight = 0.0;
     vector<vertex_id_t> path = {};
-
-    explicit ShortestPath(weight_t weight) : weight(weight) {}
 };
 
 export class Graph {
@@ -128,6 +126,40 @@ export class Graph {
 
         path.pop_back();
         return false;
+    }
+
+    std::pair<unordered_set<vertex_id_t>, std::map<vertex_id_t, ShortestPath>>
+    initialize_dijkstra(vertex_id_t start) const {
+        unordered_set<vertex_id_t> visited;
+
+        std::map<vertex_id_t, ShortestPath> shortest_paths;
+        const auto inf = std::numeric_limits<weight_t>::infinity();
+        for (const auto &[id, _] : adjacency_list) {
+            shortest_paths.try_emplace(id, ShortestPath{inf, {}});
+        }
+        shortest_paths.at(start) = ShortestPath{0.0, {start}};
+
+        return {visited, shortest_paths};
+    }
+
+    std::optional<vertex_id_t> find_current_vertex_dijkstra(
+        const unordered_set<vertex_id_t> &visited,
+        const std::map<vertex_id_t, ShortestPath> &shortest_paths
+    ) const {
+        std::optional<vertex_id_t> current = std::nullopt;
+
+        weight_t min_not_visited_weight =
+            std::numeric_limits<weight_t>::infinity();
+
+        for (auto const &[id, cur_sp] : shortest_paths) {
+            if (min_not_visited_weight > cur_sp.weight &&
+                !visited.contains(id)) {
+                current = id;
+                min_not_visited_weight = cur_sp.weight;
+            }
+        }
+
+        return current;
     }
 
   public:
@@ -289,48 +321,28 @@ export class Graph {
     }
 
     std::optional<std::map<vertex_id_t, ShortestPath>>
-    find_shortest_pathes_dijkstra(vertex_id_t start) {
+    find_shortest_pathes_dijkstra(vertex_id_t start) const {
         if (!adjacency_list.contains(start)) {
             return std::nullopt;
         }
 
-        unordered_set<vertex_id_t> visited;
-
-        std::map<vertex_id_t, ShortestPath> shortest_paths;
-        shortest_paths.try_emplace(start, 0.0);
-        for (const auto &[id, _] : adjacency_list) {
-            shortest_paths.try_emplace(
-                id, std::numeric_limits<weight_t>::infinity()
-            );
-        }
-        shortest_paths.at(start).path = {start};
+        auto [visited, shortest_paths] = initialize_dijkstra(start);
 
         while (true) {
-            std::optional<vertex_id_t> current;
-
-            weight_t min_not_visited_weight =
-                std::numeric_limits<weight_t>::infinity();
-
-            for (auto const &[id, cur_sp] : shortest_paths) {
-                if (min_not_visited_weight > cur_sp.weight &&
-                    !visited.contains(id)) {
-                    current = id;
-                    min_not_visited_weight = cur_sp.weight;
-                }
-            }
-
-            if (!current) {
+            std::optional<vertex_id_t> current_opt =
+                find_current_vertex_dijkstra(visited, shortest_paths);
+            if (!current_opt) {
                 break;
             }
+            vertex_id_t current = *current_opt;
 
-            for (auto const &[ne_id, _, w] :
-                 adjacency_list.at(current.value())) {
+            for (auto const &[ne_id, _, w] : adjacency_list.at(current)) {
                 if (visited.contains(ne_id)) {
                     continue;
                 }
 
                 auto &next = shortest_paths.at(ne_id);
-                const auto &cur_path = shortest_paths.at(current.value());
+                const auto &cur_path = shortest_paths.at(current);
 
                 weight_t candidate_weight = cur_path.weight + w;
                 if (next.weight > candidate_weight) {
@@ -341,7 +353,7 @@ export class Graph {
                 }
             }
 
-            visited.insert(current.value());
+            visited.insert(current);
 
             if (visited.size() == adjacency_list.size()) {
                 break;
