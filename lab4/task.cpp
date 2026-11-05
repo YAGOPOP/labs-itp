@@ -33,7 +33,8 @@ int main() {
     // надо добраться до каждой вершины и обратно из вершины `1`
     // вывести все пути и найти оптимальные
 
-    std::optional<std::map<vertex_id_t, ShortestPath>> a = graph.find_shortest_pathes_dijkstra(1);
+    std::optional<std::map<vertex_id_t, ShortestPath>> a =
+        graph.find_shortest_pathes_dijkstra(1);
 
     if (!a.has_value()) {
         return 1;
