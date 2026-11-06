@@ -10,3 +10,16 @@ target_sources(lab4
         FILES
             ${CMAKE_SOURCE_DIR}/modules/graphs.cppm
 )
+
+add_executable(lab4_control_test control_test.cpp)
+
+set_property(TARGET lab4_control_test PROPERTY CXX_SCAN_FOR_MODULES ON)
+
+target_sources(lab4_control_test
+    PRIVATE
+        FILE_SET modules
+        TYPE CXX_MODULES
+        BASE_DIRS ${CMAKE_SOURCE_DIR}/modules
+        FILES
+            ${CMAKE_SOURCE_DIR}/modules/graphs.cppm
+)

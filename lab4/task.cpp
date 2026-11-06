@@ -1,7 +1,8 @@
-#include <map>
 #include <print>
 
 import graphs;
+
+using std::println;
 
 int main() {
     Graph graph;
@@ -36,5 +37,14 @@ int main() {
     PathMatrix path_matrix = graph.find_all_shortest_paths();
 
     Graph full_graph = Graph::from_path_matrix(path_matrix);
+
+    if (auto result = full_graph.find_minimum_hamiltonian_cycle(1)) {
+        println("Minimum cost: {}", result->first);
+
+        auto route = expand_cycle(path_matrix, result->second);
+
+        println("Actual route:");
+        print_path(std::span{route});
+    }
 
 }

@@ -31,7 +31,8 @@ export struct ShortestPath {
     vector<vertex_id_t> path = {};
 };
 
-export using PathMatrix = std::map<vertex_id_t, std::map<vertex_id_t, ShortestPath>>;
+export using PathMatrix =
+    std::map<vertex_id_t, std::map<vertex_id_t, ShortestPath>>;
 
 export class Graph {
   private:
@@ -129,6 +130,54 @@ export class Graph {
 
         path.pop_back();
         return false;
+    }
+
+    void hamiltonian_dfs(
+        vertex_id_t u,
+        vector<vertex_id_t> &path,
+        weight_t current_weight,
+        weight_t &best_weight,
+        vector<vertex_id_t> &best_cycle
+    ) const {
+        if (current_weight >= best_weight) {
+            return;
+        }
+
+        path.push_back(u);
+
+        if (path.size() == adjacency_list.size()) {
+            for (const Arc &edge : adjacency_list.at(u)) {
+                if (edge.vertex != path.front()) {
+                    continue;
+                }
+
+                weight_t total_weight = current_weight + edge.weight;
+
+                if (total_weight < best_weight) {
+                    best_weight = total_weight;
+
+                    best_cycle = path;
+                    best_cycle.push_back(path.front());
+                }
+            }
+        }
+
+        for (const Arc &edge : adjacency_list.at(u)) {
+            if (std::ranges::contains(path, edge.vertex)) {
+                continue;
+            }
+
+            hamiltonian_dfs(
+                edge.vertex,
+                path,
+                current_weight + edge.weight,
+                best_weight,
+                best_cycle
+            );
+        }
+
+        path.pop_back();
+        return;
     }
 
     std::pair<unordered_set<vertex_id_t>, std::map<vertex_id_t, ShortestPath>>
@@ -403,6 +452,26 @@ export class Graph {
 
         return full_graph;
     }
+
+    std::optional<std::pair<weight_t, vector<vertex_id_t>>>
+    find_minimum_hamiltonian_cycle(vertex_id_t start) const {
+        if (!adjacency_list.contains(start)) {
+            return std::nullopt;
+        }
+
+        weight_t best_weight = std::numeric_limits<weight_t>::infinity();
+
+        vector<vertex_id_t> path;
+        vector<vertex_id_t> best_cycle;
+
+        hamiltonian_dfs(start, path, 0.0, best_weight, best_cycle);
+
+        if (best_cycle.empty()) {
+            return std::nullopt;
+        }
+
+        return std::pair{best_weight, std::move(best_cycle)};
+    }
 };
 
 export template <typename T> void print_array(const std::span<T> array) {
@@ -410,4 +479,41 @@ export template <typename T> void print_array(const std::span<T> array) {
         std::print("{} ", v);
     }
     std::println("");
+}
+
+export template <typename T> void print_path(const std::span<T> array) {
+    if (array.empty()) {
+        return;
+    }
+
+    // std::print("{}", array[0]);
+    for (std::size_t i = 0; i < array.size() - 1; i++) {
+        std::print("{} -> ", array[i]);
+    }
+    std::println("{}", array.back());
+}
+
+export vector<vertex_id_t> expand_cycle(
+    const PathMatrix &path_matrix,
+    const vector<vertex_id_t> &cycle
+) {
+    vector<vertex_id_t> route;
+
+    for (size_t i = 0; i + 1 < cycle.size(); ++i) {
+        const auto &segment = path_matrix.at(cycle[i]).at(cycle[i + 1]).path;
+
+        if (segment.empty()) {
+            throw std::logic_error("Path is empty");
+        }
+
+        auto begin = segment.begin();
+
+        if (!route.empty()) {
+            ++begin;
+        }
+
+        route.insert(route.end(), begin, segment.end());
+    }
+
+    return route;
 }
