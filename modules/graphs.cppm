@@ -1,6 +1,7 @@
 module;
 
 #include <algorithm>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <limits>
@@ -29,6 +30,8 @@ export struct ShortestPath {
     weight_t weight = 0.0;
     vector<vertex_id_t> path = {};
 };
+
+export using PathMatrix = std::map<vertex_id_t, std::map<vertex_id_t, ShortestPath>>;
 
 export class Graph {
   private:
@@ -314,14 +317,8 @@ export class Graph {
         return std::nullopt;
     }
 
-    std::map<vertex_id_t, ShortestPath> find_shortest_pathes_floyd() {
-        std::map<vertex_id_t, ShortestPath> shortest_paths;
-
-        return shortest_paths;
-    }
-
     std::optional<std::map<vertex_id_t, ShortestPath>>
-    find_shortest_pathes_dijkstra(vertex_id_t start) const {
+    find_shortest_paths_dijkstra(vertex_id_t start) const {
         if (!adjacency_list.contains(start)) {
             return std::nullopt;
         }
@@ -361,6 +358,50 @@ export class Graph {
         }
 
         return shortest_paths;
+    }
+
+    PathMatrix find_all_shortest_paths() {
+        PathMatrix all_paths;
+        for (const auto &[start_vertex, _] : adjacency_list) {
+            auto paths = find_shortest_paths_dijkstra(start_vertex);
+            if (!paths) {
+                continue;
+            }
+            all_paths.try_emplace(start_vertex, std::move(*paths));
+        }
+
+        return all_paths;
+    }
+
+    static Graph from_path_matrix(const PathMatrix &path_matrix) {
+        Graph full_graph;
+
+        vector<vertex_id_t> vertices;
+        for (const auto &[vertex, _] : path_matrix) {
+            full_graph.add_vertex(vertex);
+            vertices.push_back(vertex);
+        }
+
+        for (size_t i = 0; i < vertices.size(); ++i) {
+            for (size_t j = i + 1; j < vertices.size(); ++j) {
+                const auto &shortest_path =
+                    path_matrix.at(vertices[i]).at(vertices[j]);
+
+                if (vertices[i] == vertices[j]) {
+                    continue;
+                }
+
+                if (!std::isfinite(shortest_path.weight)) {
+                    continue;
+                }
+
+                full_graph.add_arc(
+                    vertices[i], vertices[j], shortest_path.weight
+                );
+            }
+        }
+
+        return full_graph;
     }
 };
 

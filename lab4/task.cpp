@@ -33,13 +33,8 @@ int main() {
     // надо добраться до каждой вершины и обратно из вершины `1`
     // вывести все пути и найти оптимальные
 
-    std::optional<std::map<vertex_id_t, ShortestPath>> a =
-        graph.find_shortest_pathes_dijkstra(1);
+    PathMatrix path_matrix = graph.find_all_shortest_paths();
 
-    if (!a.has_value()) {
-        return 1;
-    }
+    Graph full_graph = Graph::from_path_matrix(path_matrix);
 
-    std::println("{}", a.value().at(3).weight);
-    std::println("{}", a.value().at(3).path);
 }
