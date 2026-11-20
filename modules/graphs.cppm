@@ -13,6 +13,8 @@ module;
 #include <unordered_set>
 #include <utility>
 #include <vector>
+#include <array>
+#include <random>
 
 export module graphs;
 
