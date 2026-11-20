@@ -6,9 +6,9 @@ import graphs;
 import maze_visualization;
 
 int main() {
-    constexpr size_t width = 30;
-    constexpr size_t height = 30;
-    constexpr float cell_size = 20.0f;
+    constexpr size_t width = 5;
+    constexpr size_t height = 5;
+    constexpr float cell_size = 50.0f;
     constexpr float offset = 3.0f;
 
     std::random_device rng;

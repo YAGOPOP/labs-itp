@@ -8,7 +8,7 @@ import maze_visualization;
 int main() {
     constexpr size_t width = 9;
     constexpr size_t height = 12;
-    constexpr float cell_size = 20.0f;
+    constexpr float cell_size = 30.0f;
     constexpr float offset = 3.0f;
 
     std::random_device rng;
