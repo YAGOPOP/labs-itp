@@ -22,6 +22,8 @@ using std::unordered_map;
 using std::unordered_set;
 using std::vector;
 
+using std::println;
+
 export using vertex_id_t = uint32_t;
 export using edge_id_t = uint32_t;
 using weight_t = double;
@@ -215,6 +217,12 @@ export class Graph {
     }
 
   public:
+    void populate_with_verticies(size_t verticies_count) {
+        for (vertex_id_t i = 1; i <= verticies_count; i++) {
+            this->add_vertex(i);
+        }
+    }
+
     bool are_all_degrees_even() const {
         for (const auto &[_, connections] : adjacency_list) {
             if (connections.size() % 2 != 0) {
@@ -471,6 +479,33 @@ export class Graph {
         }
 
         return std::pair{best_weight, std::move(best_cycle)};
+    }
+
+    void maze_dfs(
+        vertex_id_t next_vertex,
+        vertex_id_t final_vertex,
+        vector<vertex_id_t> &path,
+        vector<vertex_id_t> &best_path
+    ) const {
+        path.push_back(next_vertex);
+        println("pushed: {}, path: {}, bp: {}", next_vertex, path, best_path);
+
+        if (next_vertex == final_vertex) {
+            if (best_path.empty() || path.size() <= best_path.size()) {
+                best_path = path;
+            }
+            path.pop_back();
+            return;
+        }
+
+        for (auto const &[neighbour, _, _] : adjacency_list.at(next_vertex)) {
+            if (std::ranges::contains(path, neighbour)) {
+                continue;
+            }
+            maze_dfs(neighbour, final_vertex, path, best_path);
+        }
+
+        path.pop_back();
     }
 };
 
