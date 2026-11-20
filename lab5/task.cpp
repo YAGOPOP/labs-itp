@@ -10,13 +10,15 @@ void draw_maze(
     size_t width,
     size_t height,
     const std::vector<vertex_id_t> &path,
-    float cell_size
+    float cell_size,
+    float offset
 );
 
 int main() {
     constexpr size_t width = 30;
     constexpr size_t height = 30;
     constexpr float cell_size = 20.0f;
+    constexpr float offset = 3.0f;
 
     std::random_device rng;
 
@@ -33,10 +35,10 @@ int main() {
     sf::RenderWindow window(
         sf::VideoMode(
             static_cast<unsigned int>(
-                static_cast<float>(width) * cell_size + 1.0f
+                static_cast<float>(width) * cell_size + offset * 2.0f
             ),
             static_cast<unsigned int>(
-                static_cast<float>(height) * cell_size + 1.0f
+                static_cast<float>(height) * cell_size + offset * 2.0f
             )
         ),
         "Maze"
@@ -51,7 +53,7 @@ int main() {
             }
         }
 
-        draw_maze(window, graph, width, height, best_path, cell_size);
+        draw_maze(window, graph, width, height, best_path, cell_size, offset);
     }
 }
 
@@ -61,14 +63,16 @@ void draw_maze(
     size_t width,
     size_t height,
     const std::vector<vertex_id_t> &path,
-    float cell_size
+    float cell_size,
+    float offset
+
 ) {
     // Рисуем стены.
     sf::VertexArray walls(sf::Lines);
 
     auto add_wall = [&](float x1, float y1, float x2, float y2) {
-        walls.append(sf::Vertex{{x1, y1}, sf::Color::Black});
-        walls.append(sf::Vertex{{x2, y2}, sf::Color::Black});
+        walls.append(sf::Vertex{{x1 + offset, y1 + offset}, sf::Color::Black});
+        walls.append(sf::Vertex{{x2 + offset, y2 + offset}, sf::Color::Black});
     };
 
     for (size_t y = 0; y < height; ++y) {
@@ -134,8 +138,8 @@ void draw_maze(
 
             solution.append(
                 sf::Vertex{
-                    {(static_cast<float>(x) + 0.5f) * cell_size,
-                     (static_cast<float>(y) + 0.5f) * cell_size},
+                    {(static_cast<float>(x) + 0.5f) * cell_size + offset,
+                     (static_cast<float>(y) + 0.5f) * cell_size + offset},
                     sf::Color::Red
                 }
             );
