@@ -4,14 +4,17 @@
 
 import graphs;
 
-void draw_maze(
-    sf::RenderWindow &window,
+sf::VertexArray build_maze_walls(
     const Graph &graph,
     size_t width,
     size_t height,
+    float cell_size
+);
+
+sf::VertexArray build_solution(
     const std::vector<vertex_id_t> &path,
-    float cell_size,
-    float offset
+    size_t width,
+    float cell_size
 );
 
 int main() {
@@ -44,6 +47,12 @@ int main() {
         "Maze"
     );
 
+    auto solution = build_solution(best_path, width, cell_size);
+    auto maze = build_maze_walls(graph, width, height, cell_size);
+
+    sf::Transform transform;
+    transform.translate(offset, offset);
+
     while (window.isOpen()) {
         sf::Event event;
 
@@ -53,24 +62,19 @@ int main() {
             }
         }
 
-        draw_maze(window, graph, width, height, best_path, cell_size, offset);
+        window.clear(sf::Color::White);
+        window.draw(solution, transform);
+        window.draw(maze, transform);
+        window.display();
     }
 }
 
-void draw_maze(
-    sf::RenderWindow &window,
+sf::VertexArray build_maze_walls(
     const Graph &graph,
     size_t width,
     size_t height,
-    const std::vector<vertex_id_t> &path,
-    float cell_size,
-    float offset
-
+    float cell_size
 ) {
-    sf::Transform transform;
-    transform.translate(offset, offset);
-
-    // Рисуем стены.
     sf::VertexArray walls(sf::Lines);
 
     auto add_wall = [&](float x1, float y1, float x2, float y2) {
@@ -128,9 +132,14 @@ void draw_maze(
             }
         }
     }
+    return walls;
+}
 
-    window.clear(sf::Color::White);
-
+sf::VertexArray build_solution(
+    const std::vector<vertex_id_t> &path,
+    size_t width,
+    float cell_size
+) {
     sf::VertexArray solution(sf::LineStrip);
 
     for (vertex_id_t vertex : path) {
@@ -145,8 +154,5 @@ void draw_maze(
             }
         );
     }
-    window.draw(solution, transform);
-
-    window.draw(walls, transform);
-    window.display();
+    return solution;
 }
