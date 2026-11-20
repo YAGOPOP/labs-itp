@@ -534,7 +534,7 @@ export vector<vertex_id_t> expand_cycle(
 ) {
     vector<vertex_id_t> route;
 
-    for (size_t i = 0; i + 1 < cycle.size(); ++i) {
+    for (size_t i = 0; i < cycle.size() - 1; i++) {
         const auto &segment = path_matrix.at(cycle[i]).at(cycle[i + 1]).path;
 
         if (segment.empty()) {
@@ -544,7 +544,7 @@ export vector<vertex_id_t> expand_cycle(
         auto begin = segment.begin();
 
         if (!route.empty()) {
-            ++begin;
+            begin++;
         }
 
         route.insert(route.end(), begin, segment.end());

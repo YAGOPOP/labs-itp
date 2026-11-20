@@ -31,9 +31,6 @@ int main() {
 
     graph.add_arc(7, 8, 5);
 
-    // надо добраться до каждой вершины и обратно из вершины `1`
-    // вывести все пути и найти оптимальные
-
     PathMatrix path_matrix = graph.find_all_shortest_paths();
 
     Graph full_graph = Graph::from_path_matrix(path_matrix);
