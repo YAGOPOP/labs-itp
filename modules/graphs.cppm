@@ -22,8 +22,6 @@ using std::unordered_map;
 using std::unordered_set;
 using std::vector;
 
-using std::println;
-
 export using vertex_id_t = uint32_t;
 export using edge_id_t = uint32_t;
 using weight_t = double;
@@ -488,7 +486,6 @@ export class Graph {
         vector<vertex_id_t> &best_path
     ) const {
         path.push_back(next_vertex);
-        println("pushed: {}, path: {}, bp: {}", next_vertex, path, best_path);
 
         if (next_vertex == final_vertex) {
             if (best_path.empty() || path.size() <= best_path.size()) {
@@ -506,6 +503,78 @@ export class Graph {
         }
 
         path.pop_back();
+    }
+
+    template <std::uniform_random_bit_generator URBG>
+    static Graph make_maze(
+        size_t width,
+        size_t height,
+        URBG& rng
+    ) {
+        Graph maze;
+
+        const size_t vertex_count = width * height;
+
+        for (size_t i = 0; i < vertex_count; ++i) {
+            maze.add_vertex(static_cast<vertex_id_t>(i));
+        }
+
+        vector<bool> visited(vertex_count, false);
+        vector<size_t> dfs_stack;
+
+        visited[0] = true;
+        dfs_stack.push_back(0);
+
+        while (!dfs_stack.empty()) {
+            const size_t current = dfs_stack.back();
+
+            const size_t x = current % width;
+            const size_t y = current / width;
+
+            std::array<size_t, 4> neighbours;
+            size_t neighbours_count = 0;
+
+            if (x > 0 && !visited[current - 1]) {
+                neighbours[neighbours_count++] = current - 1;
+            }
+
+            if (x + 1 < width && !visited[current + 1]) {
+                neighbours[neighbours_count++] = current + 1;
+            }
+
+            if (y > 0 && !visited[current - width]) {
+                neighbours[neighbours_count++] = current - width;
+            }
+
+            if (y + 1 < height && !visited[current + width]) {
+                neighbours[neighbours_count++] = current + width;
+            }
+
+            // Тупик: возвращаемся к предыдущей клетке.
+            if (neighbours_count == 0) {
+                dfs_stack.pop_back();
+                continue;
+            }
+
+            // Случайно выбираем непосещённого соседа.
+            std::uniform_int_distribution<size_t> distribution{
+                0, neighbours_count - 1
+            };
+
+            const size_t next = neighbours[distribution(rng)];
+
+            // Создаём проход. Стоимость каждого перехода равна единице.
+            maze.add_arc(
+                static_cast<vertex_id_t>(current),
+                static_cast<vertex_id_t>(next),
+                1.0
+            );
+
+            visited[next] = true;
+            dfs_stack.push_back(next);
+        }
+
+        return maze;
     }
 };
 
