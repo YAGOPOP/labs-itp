@@ -1,6 +1,7 @@
 module;
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -8,13 +9,12 @@ module;
 #include <map>
 #include <optional>
 #include <print>
+#include <random>
 #include <stack>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
-#include <array>
-#include <random>
 
 export module graphs;
 
@@ -508,11 +508,7 @@ export class Graph {
     }
 
     template <std::uniform_random_bit_generator URBG>
-    static Graph make_maze(
-        size_t width,
-        size_t height,
-        URBG& rng
-    ) {
+    static Graph make_maze(size_t width, size_t height, URBG &rng) {
         Graph maze;
 
         const size_t vertex_count = width * height;
@@ -552,30 +548,25 @@ export class Graph {
                 neighbours[neighbours_count++] = current + width;
             }
 
-            // Тупик: возвращаемся к предыдущей клетке.
             if (neighbours_count == 0) {
                 dfs_stack.pop_back();
                 continue;
             }
 
-            // Случайно выбираем непосещённого соседа.
             std::uniform_int_distribution<size_t> distribution{
                 0, neighbours_count - 1
             };
 
             const size_t next = neighbours[distribution(rng)];
 
-            // Создаём проход. Стоимость каждого перехода равна единице.
             maze.add_arc(
                 static_cast<vertex_id_t>(current),
-                static_cast<vertex_id_t>(next),
-                1.0
+                static_cast<vertex_id_t>(next)
             );
 
             visited[next] = true;
             dfs_stack.push_back(next);
         }
-
         return maze;
     }
 };
@@ -592,7 +583,6 @@ export template <typename T> void print_path(const std::span<T> array) {
         return;
     }
 
-    // std::print("{}", array[0]);
     for (std::size_t i = 0; i < array.size() - 1; i++) {
         std::print("{} -> ", array[i]);
     }
