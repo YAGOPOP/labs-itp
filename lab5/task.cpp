@@ -67,12 +67,15 @@ void draw_maze(
     float offset
 
 ) {
+    sf::Transform transform;
+    transform.translate(offset, offset);
+
     // Рисуем стены.
     sf::VertexArray walls(sf::Lines);
 
     auto add_wall = [&](float x1, float y1, float x2, float y2) {
-        walls.append(sf::Vertex{{x1 + offset, y1 + offset}, sf::Color::Black});
-        walls.append(sf::Vertex{{x2 + offset, y2 + offset}, sf::Color::Black});
+        walls.append(sf::Vertex{{x1, y1}, sf::Color::Black});
+        walls.append(sf::Vertex{{x2, y2}, sf::Color::Black});
     };
 
     for (size_t y = 0; y < height; ++y) {
@@ -128,26 +131,22 @@ void draw_maze(
 
     window.clear(sf::Color::White);
 
-    // Рисуем найденный путь.
-    if (!path.empty()) {
-        sf::VertexArray solution(sf::LineStrip);
+    sf::VertexArray solution(sf::LineStrip);
 
-        for (vertex_id_t vertex : path) {
-            const size_t x = vertex % width;
-            const size_t y = vertex / width;
+    for (vertex_id_t vertex : path) {
+        const size_t x = vertex % width;
+        const size_t y = vertex / width;
 
-            solution.append(
-                sf::Vertex{
-                    {(static_cast<float>(x) + 0.5f) * cell_size + offset,
-                     (static_cast<float>(y) + 0.5f) * cell_size + offset},
-                    sf::Color::Red
-                }
-            );
-        }
-
-        window.draw(solution);
+        solution.append(
+            sf::Vertex{
+                {(static_cast<float>(x) + 0.5f) * cell_size,
+                 (static_cast<float>(y) + 0.5f) * cell_size},
+                sf::Color::Red
+            }
+        );
     }
+    window.draw(solution, transform);
 
-    window.draw(walls);
+    window.draw(walls, transform);
     window.display();
 }
