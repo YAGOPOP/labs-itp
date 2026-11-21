@@ -1,6 +1,10 @@
 #include <cstddef>
+#include <format>
+#include <print>
 #include <string>
 
+using std::format;
+using std::println;
 using std::string;
 using price_t = unsigned int;
 
@@ -25,10 +29,22 @@ class Product {
         : price(price), product_name(product_name),
           article_number(article_number), manufacturer(manufacturer) {}
 
-    price_t get_price() { return price; }
-    string get_product_name() { return product_name; }
-    long get_article_number() { return article_number; }
-    string get_manufacturer() { return manufacturer; }
+    virtual ~Product() = default;
+
+    price_t get_price() const { return price; }
+    string get_product_name() const { return product_name; }
+    long get_article_number() const { return article_number; }
+    string get_manufacturer() const { return manufacturer; }
+
+    virtual string to_display_string() const {
+        return format(
+            "Цена: {}\nНаименование: {}\nАртикул: {}\nПроизводитель: {}",
+            price,
+            product_name,
+            article_number,
+            manufacturer
+        );
+    }
 };
 
 class Bicycle : public Product {
@@ -51,9 +67,25 @@ class Bicycle : public Product {
           frame_size(frame_size), gear_count(gear_count),
           suspension(suspension) {}
 
-    unsigned long get_frame_size() { return frame_size; }
-    size_t get_gear_count() { return gear_count; }
-    bool has_suspension() { return suspension; }
+    unsigned long get_frame_size() const { return frame_size; }
+    size_t get_gear_count() const { return gear_count; }
+    bool has_suspension() const { return suspension; }
+
+    string to_display_string() const override {
+        auto hs = "Нет";
+        if (suspension) {
+            hs = "Да";
+        }
+
+        return Product::to_display_string() +
+               format(
+                   "\nРазмер рамы (мм): {}\nКоличесво передач: {}\nЕсть "
+                   "подвеска: {}",
+                   frame_size,
+                   gear_count,
+                   hs
+               );
+    }
 };
 
 class MountainBicycle : public Bicycle {
@@ -82,7 +114,11 @@ class MountainBicycle : public Bicycle {
           ),
           tire_width(tire_width) {}
 
-    unsigned long get_tire_width() { return tire_width; }
+    unsigned long get_tire_width() const { return tire_width; }
+    string to_display_string() const override {
+        return Bicycle::to_display_string() +
+               format("\nШирина покрышки (мм): {}", tire_width);
+    }
 };
 
 class Scooter : public Product {
@@ -104,4 +140,23 @@ class Scooter : public Product {
 
     unsigned long get_max_load() { return max_load; }
     bool is_foldable() { return foldable; }
+
+    string to_display_string() const override {
+        auto fld = "Нет";
+        if (foldable) {
+            fld = "Да";
+        }
+
+        return Product::to_display_string() +
+               format(
+                   "\nМаксимальная загрузка (гр): {}\nСкладной: {}",
+                   max_load,
+                   fld
+               );
+    }
+};
+
+int main() {
+    Bicycle s{15, "aaa", 1500, "shit.co", 1200, 27, true};
+    println("{}", s.to_display_string());
 };
