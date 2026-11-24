@@ -36,16 +36,27 @@ class Product {
     long get_article_number() const { return article_number; }
     string get_manufacturer() const { return manufacturer; }
 
-    virtual string to_display_string() const {
-        return format(
+    virtual string to_display_string() const;
+};
+
+template <>struct std::formatter<Product> {
+    constexpr auto parse(std::format_parse_context &ctx) { return ctx.begin(); }
+
+    auto format(const Product &c, std::format_context ctx) const {
+        return std::format_to(
+            ctx.out(),
             "Цена: {}\nНаименование: {}\nАртикул: {}\nПроизводитель: {}",
-            price,
-            product_name,
-            article_number,
-            manufacturer
+            c.get_price(),
+            c.get_product_name(),
+            c.get_article_number(),
+            c.get_manufacturer()
         );
     }
 };
+
+string Product::to_display_string() const{
+    return format( "{}", *this);
+}
 
 class Bicycle : public Product {
   private:
